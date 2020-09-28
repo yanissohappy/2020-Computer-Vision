@@ -92,62 +92,65 @@ def makeLabel(image):
 		for j in range(int(width)):
 			if ret[i][j] != 0: # 255
 				# check left-upper, upper, right-upper, left (if exists)
-				ret[i][j] = setValue(ret, i, j)
-				# ret[i][j] = newLabel()
+				# ret[i][j] = setValue(ret, i, j)
+				ret[i][j] = newLabel()
 	return ret
 
-def firstPass(image, quivalence_list):
+def firstPass(image, equivalence_list):
+	is_revised = 0
 	for i in range(int(length)):
 		for j in range(int(width)):
 			if image[i][j] != 0: # 255
 				_min, is_checked = image[i][j], 0
 				if i != 0 and j != 0: # left upper
-					if image[i - 1][j - 1] != 0 and image[i - 1][j - 1] < minlabel and not is_checked:
+					if image[i - 1][j - 1] != 0 and image[i - 1][j - 1] < _min and is_checked != 1:
 						_min = image[i - 1][j - 1]
 						is_checked = 1
 				if i != 0: # upper
-					if image[i - 1][j] != 0 and image[i - 1][j] < minlabel and not is_checked:
+					if image[i - 1][j] != 0 and image[i - 1][j] < _min and is_checked != 1:
 						_min = image[i - 1][j]
 						is_checked = 1
 				if i != 0 and j != int(length) - 1: # right upper
-					if image[i - 1][j + 1] != 0 and image[i - 1][j + 1] < minlabel and not is_checked:
+					if image[i - 1][j + 1] != 0 and image[i - 1][j + 1] < _min and is_checked != 1:
 						_min = image[i - 1][j + 1]
 						is_checked = 1
 				if j != 0: # just left
-					if image[i][j - 1] != 0 and image[i][j - 1] < minlabel and not is_checked:
+					if image[i][j - 1] != 0 and image[i][j - 1] < _min and is_checked != 1:
 						_min = image[i][j - 1]
 						is_checked = 1
 				if _min != image[i][j]:
-					quivalence_list[image[i][j]] = _min # change equivalence table
+					equivalence_list[image[i][j]] = _min # change equivalence table
 					image[i][j] = _min	
-					return True # need to be iteration again becasue image is changed
-				else:
-					return False
+					is_revised = 1
+	if is_revised == 1:
+		return True
+	else:
+		return False
 
-def secondPass(image, quivalence_list):	# adjust all quivalence_list
+def secondPass(image, equivalence_list):	# adjust all equivalence_list
 	for i in range(int(length)):
 		for j in range(int(width)):
 			if image[i][j] != 0: # 255
-				temp = quivalence_list[image[i][j]]
+				temp = equivalence_list[image[i][j]]
 				if i != 0 and j != 0: # left upper
-					if quivalence_list[image[i - 1][j - 1]] != temp:
-						quivalence_list[image[i - 1][j - 1]] = temp
+					if equivalence_list[image[i - 1][j - 1]] != temp:
+						equivalence_list[image[i - 1][j - 1]] = temp
 				if i != 0: # upper
-					if quivalence_list[image[i - 1][j]] != temp:
-						quivalence_list[image[i - 1][j]] = temp
+					if equivalence_list[image[i - 1][j]] != temp:
+						equivalence_list[image[i - 1][j]] = temp
 				if i != 0 and j != int(length) - 1: # right upper
-					if quivalence_list[image[i - 1][j + 1]] != temp:
-						quivalence_list[image[i - 1][j + 1]] = temp
+					if equivalence_list[image[i - 1][j + 1]] != temp:
+						equivalence_list[image[i - 1][j + 1]] = temp
 				if j != 0: # just left
-					if quivalence_list[image[i][j - 1]] != temp:
-						quivalence_list[image[i][j - 1]] = temp
+					if equivalence_list[image[i][j - 1]] != temp:
+						equivalence_list[image[i][j - 1]] = temp
 
-def makeConnectedComponent(image, quivalence_list, pixel_count_for_a_connected):
+def makeConnectedComponent(image, equivalence_list, pixel_count_for_a_connected):
 	for i in range(int(length)):
 		for j in range(int(width)):	
-			image[i][j] = quivalence_list[image[i][j]]
-			pixel_count_for_a_connected[image[i][j]] += 1
-	return pixel_count_for_a_connected
+			if image[i][j] != 0: # 255
+				image[i][j] = equivalence_list[image[i][j]]
+				pixel_count_for_a_connected[image[i][j]] += 1
 						
 # binary picture output
 binarized_list = binarize(img)
@@ -160,15 +163,15 @@ plt.savefig("histogram.png")
 
 # Connected Component
 ConnectedComponent = makeLabel(binarized_list)
-quivalence_list = [0 for _ in range(label + 300)] # used for find the same min value in a pass
+print(ConnectedComponent)
+equivalence_list = [i for i in range(label + 100)] # used for find the same min value in a pass
 while True:
-	is_loop_again = firstPass(ConnectedComponent, quivalence_list)
-	secondPass(ConnectedComponent, quivalence_list)
-	print("YES")
-	if is_loop_again:
+	#print("X")
+	is_loop_again = firstPass(ConnectedComponent, equivalence_list)
+	secondPass(ConnectedComponent, equivalence_list)
+	if is_loop_again == True:
 		continue
 	else:
 		break
-pixel_count_for_a_connected = [0 for _ in range(label + 300)] # used for counting number of a connected component
-pixel_count_for_a_connected = makeConnectedComponent(ConnectedComponent, quivalence_list, pixel_count_for_a_connected)
-print(pixel_count_for_a_connected)
+pixel_count_for_a_connected = [0 for _ in range(label + 100)] # used for counting number of a connected component
+makeConnectedComponent(ConnectedComponent, equivalence_list, pixel_count_for_a_connected)
