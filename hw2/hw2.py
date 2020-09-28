@@ -1,5 +1,6 @@
 import cv2
 import matplotlib.pyplot as plt
+import copy
 
 img = cv2.imread('lena.bmp', cv2.IMREAD_GRAYSCALE)
 length = len(img) # row
@@ -93,16 +94,75 @@ def makeConnectedComponent(image):
 				ret[i][j] = setValue(ret, i, j)
 	return ret
 
-def eightCheck(image, row, col):
-	if row == 0 and col == 0: # top
+def eightCheck(image, row, col, list_set):
 	if row == 0: # top beside 1st index
-	if row != 0 and col == 0: # left beside 1st index
-	if row != 0 and col == width - 1: # right not first row
-	
+		if image[row][col - 1] != 0 and image[row][col - 1] != image[row][col]:
+			if {image[row][col], image[row][col - 1]} not in list_set:
+				list_set.append({image[row][col - 1], image[row][col]})
+	elif row != 0 and col == 0: # left beside 1st index
+		if image[row - 1][col] != 0 and image[row - 1][col] != image[row][col]:
+			if {image[row][col], image[row - 1][col]} not in list_set:
+				list_set.append({image[row - 1][col], image[row][col]})
+		if image[row - 1][col + 1] != 0 and image[row - 1][col + 1] != image[row][col]:
+			if {image[row][col], image[row - 1][col + 1]} not in list_set:
+				list_set.append({image[row - 1][col + 1], image[row][col]})
+			
+	elif row != 0 and col == width - 1: # right not first row
+		if image[row - 1][col - 1] != 0 and image[row - 1][col - 1] != image[row][col]:
+			if {image[row][col], image[row - 1][col - 1]} not in list_set:
+				list_set.append({image[row - 1][col - 1], image[row][col]})
+		if image[row - 1][col] != 0 and image[row - 1][col] != image[row][col]:
+			if {image[row][col], image[row - 1][col]} not in list_set:
+				list_set.append({image[row - 1][col], image[row][col]})
+		if image[row][col - 1] != 0 and image[row][col - 1] != image[row][col]:
+			if {image[row][col], image[row][col - 1]} not in list_set:
+				list_set.append({image[row][col - 1], image[row][col]})
+	else:
+		# other cases
+		if image[row - 1][col - 1] != 0 and image[row - 1][col - 1] != image[row][col]:
+			if {image[row][col], image[row - 1][col - 1]} not in list_set:
+				list_set.append({image[row - 1][col - 1], image[row][col]})
+		if image[row - 1][col] != 0 and image[row - 1][col] != image[row][col]:
+			if {image[row][col], image[row - 1][col]} not in list_set:
+				list_set.append({image[row - 1][col], image[row][col]})
+		if image[row - 1][col + 1] != 0 and image[row - 1][col + 1] != image[row][col]:
+			if {image[row][col], image[row - 1][col + 1]} not in list_set:
+				list_set.append({image[row - 1][col + 1], image[row][col]})
+		if image[row][col - 1] != 0 and image[row][col - 1] != image[row][col]:
+			if {image[row][col], image[row][col - 1]} not in list_set:
+				list_set.append({image[row][col - 1], image[row][col]})
+
+def mergeConnectPair(list_set):
+	pool = set(map(frozenset, list_set))
+	groups = []
+	while pool:
+		groups.append(set(pool.pop()))
+		while True:
+			for candidate in pool:
+				if groups[-1] & candidate:
+					groups[-1] |= candidate
+					pool.remove(candidate)
+					break
+			else:
+				break	
+	return groups
 	
 def checkConnect(image):
+	ret = []
 	for i in range(int(length)):
-		for j in range(int(width)):	
+		for j in range(int(width)):
+			if image[i][j] != 0: # 255
+				eightCheck(image, i, j, ret)
+	return ret
+	
+def updateLabel(image, group):
+	for i in range(int(length)):
+		for j in range(int(width)):
+			if image[i][j] != 0: # 255
+				for k in range(len(group)):
+					if image[i][j] in group[k]:
+						image[i][j] = min(group[k])
+	
 
 # binary picture output
 binarized_list = binarize(img)
@@ -115,3 +175,7 @@ plt.savefig("histogram.png")
 
 # Connected Component
 ConnectedComponent = makeConnectedComponent(binarized_list)
+group = checkConnect(ConnectedComponent) ####
+# print(len(mergeConnectPair(group)[0]))
+updateLabel(ConnectedComponent, group)
+print(ConnectedComponent[-1])
