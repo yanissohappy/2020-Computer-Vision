@@ -18,7 +18,7 @@ def pixelsDivideBy3(image):
 	ret = np.zeros(image.shape, dtype = np.int32)
 	for i in range(int(length)):
 		for j in range(int(width)):
-			ret[i][j] = round(image[i][j] / 3)
+			ret[i][j] = round(image[i][j] // 3)
 	return ret
 	
 def makehistogramEqualizationTable(pixels):
@@ -56,7 +56,7 @@ cv2.imwrite('divide_by_3.png', divide_by_3_picture)
 table = makehistogramEqualizationTable(pixel_count2)
 equalized_picture = histogramEqualize(divide_by_3_picture, table)
 pixel_count3 = histogramPixelCount(equalized_picture)
-plt.bar(range(256), pixel_count3, width = 1, facecolor = "green", edgecolor = 'white')
+plt.bar(range(256), pixel_count3, width = 1, facecolor = "green")
 plt.savefig("histogram_equalized_picture.png")
 plt.close()
 cv2.imwrite('equalized_picture.png', equalized_picture)
