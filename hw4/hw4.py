@@ -61,6 +61,47 @@ def erosion(image, kernel):
 			ret[i, j] = value
 	return ret
 	
+def opening(eroted_photo, kernel):
+	return dilation(eroted_photo, kernel)
+
+def closing(dilated_photo, kernel):
+	return erosion(dilated_photo, kernel)	
+	
+def complement(image):
+	ret = np.zeros(image.shape, np.int)
+	for i in range(int(width)):
+		for j in range(int(length)):
+			if image[i, j] == 255:
+				ret[i, j] = 0
+			else:
+				ret[i, j] = 255
+	return ret
+	
+def intersection(image1, image2):
+	ret = np.zeros((length, width), np.int)
+	for i in range(int(width)):
+		for j in range(int(length)):
+			if image1[i, j] == 255 and image2[i, j] == 255:
+				ret[i, j] = 255
+	return ret
+				
+	
+def hitAndMiss(image): # this algorithm just uses upside-down L structure element
+	A_J = np.zeros(image.shape, np.int)
+	Ac_K = np.zeros(image.shape, np.int)
+	complement_image = complement(image)
+	for i in range(int(width)):
+		for j in range(int(length)): 
+			if (i + 1 < length) and (j - 1 >= 0): # erosion (A (-) J) 
+				if image[i, j - 1] == 255 and image[i, j] == 255 and image[i + 1, j] == 255:
+					A_J[i, j] = 255
+	
+			if (i - 1 >= 0) and (j + 1 < width): # erosion (Ac (-) K) 
+				if complement_image[i - 1, j] == 255 and complement_image[i - 1, j + 1] == 255 and complement_image[i, j + 1] == 255:
+					Ac_K[i, j] = 255
+	return intersection(A_J, Ac_K)					
+	
+	
 ''' test another way for dilation
 def try_d(image, kernel):
 	ret = np.zeros(image.shape, np.int)
@@ -86,3 +127,12 @@ cv2.imwrite('dilation.png', dilated_photo)
 # erosion
 eroted_photo = erosion(binarized_photo, kernel)
 cv2.imwrite('erosion.png', eroted_photo)
+# opening
+opened_photo = opening(eroted_photo, kernel)
+cv2.imwrite('opening.png', opened_photo)
+# closing
+closed_photo = closing(dilated_photo, kernel)
+cv2.imwrite('closing.png', closed_photo)
+# hit and miss
+hitandmiss_photo = hitAndMiss(binarized_photo)
+cv2.imwrite('hit_and_miss.png', hitandmiss_photo)
