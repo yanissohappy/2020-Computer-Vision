@@ -231,11 +231,11 @@ def connectedShrinkOperator(down_sample_image, pair_image): # form is really sim
 					x[5] = down_sample_image[i + 1, j + 1]
 					x[8] = down_sample_image[i + 1, j - 1]
 				
-				result = f_function( \
-								h_function(x[0], x[1], x[6], x[2]), \
-								h_function(x[0], x[2], x[7], x[3]), \
-								h_function(x[0], x[3], x[8], x[4]), \
-								h_function(x[0], x[4], x[5], x[1]))
+				result = pairRelationship_f( \
+								pairRelationship_h(x[0], x[1], x[6], x[2]), \
+								pairRelationship_h(x[0], x[2], x[7], x[3]), \
+								pairRelationship_h(x[0], x[3], x[8], x[4]), \
+								pairRelationship_h(x[0], x[4], x[5], x[1]))
 				if result == 1: # can be background and record whether changed
 					down_sample_image[i, j] = 0
 					is_changed = True
@@ -244,21 +244,16 @@ def connectedShrinkOperator(down_sample_image, pair_image): # form is really sim
 def pairRelationship_h(b, c, d, e):
 	if b == c and (d != b or e != b):
 		return 1
-	if b == c and (d == b and e == b):
-		return 2
-	if b != c and (d == b and e == b):
+	else:
 		return 0
 		
 def pairRelationship_f(a1, a2, a3, a4):
-	if a1 == a2 == a3 == a4 == 2:
-		return 5
-	else:
-		count = 0
-		if a1 == "q": count += 1
-		if a2 == "q": count += 1
-		if a3 == "q": count += 1
-		if a4 == "q": count += 1
-		return count	
+	count = 0
+	if a1 == 1: count += 1
+	if a2 == 1: count += 1
+	if a3 == 1: count += 1
+	if a4 == 1: count += 1
+	return count	
 			
 # get binary photo
 binarized_photo = binarize(img)
